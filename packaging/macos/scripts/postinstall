@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PLUGIN_NAME="ptz-tracking-dock.plugin"
+STAGED_PLUGIN="/Library/Application Support/ptz-tracking-dock/${PLUGIN_NAME}"
+
+CONSOLE_USER="$(/usr/bin/stat -f %Su /dev/console)"
+if [[ -z "$CONSOLE_USER" || "$CONSOLE_USER" == "root" ]]; then
+  echo "No logged-in console user found; leaving plugin staged at ${STAGED_PLUGIN}" >&2
+  exit 0
+fi
+
+USER_HOME="$(/usr/bin/dscl . -read "/Users/${CONSOLE_USER}" NFSHomeDirectory | /usr/bin/awk '{print $2}')"
+if [[ -z "$USER_HOME" || ! -d "$USER_HOME" ]]; then
+  echo "Could not resolve home directory for ${CONSOLE_USER}; leaving plugin staged at ${STAGED_PLUGIN}" >&2
+  exit 0
+fi
+
+DEST_DIR="${USER_HOME}/Library/Application Support/obs-studio/plugins"
+DEST_PLUGIN="${DEST_DIR}/${PLUGIN_NAME}"
+
+/bin/mkdir -p "$DEST_DIR"
+/bin/rm -rf "$DEST_PLUGIN"
+/usr/bin/ditto "$STAGED_PLUGIN" "$DEST_PLUGIN"
+/usr/sbin/chown -R "${CONSOLE_USER}:staff" "$DEST_PLUGIN"
+/usr/bin/xattr -cr "$DEST_PLUGIN" 2>/dev/null || true
+
+echo "Installed ${PLUGIN_NAME} to ${DEST_PLUGIN}"

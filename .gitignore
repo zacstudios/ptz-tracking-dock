@@ -13,6 +13,7 @@ build-*/
 
 # Packaged outputs
 *.zip
+*.pkg
 *.plugin
 
 # CMake/Qt generated files

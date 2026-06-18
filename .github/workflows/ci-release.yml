@@ -49,11 +49,26 @@ jobs:
           Copy-Item $dll.FullName artifact/obs-plugins/64bit/ptz-tracking-dock.dll -Force
           Compress-Archive -Path artifact/obs-plugins -DestinationPath ptz-tracking-dock-windows.zip -Force
 
+      - name: Build Windows installer
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y
+          $version = "0.1.0"
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $version = "${{ github.ref_name }}".TrimStart("v")
+          }
+          packaging\windows\build-installer.ps1 `
+            -SourceDll artifact\obs-plugins\64bit\ptz-tracking-dock.dll `
+            -AppVersion "$version" `
+            -OutputDir .
+
       - name: Upload CI artifact
         uses: actions/upload-artifact@v4
         with:
           name: ptz-tracking-dock-windows
-          path: ptz-tracking-dock-windows.zip
+          path: |
+            ptz-tracking-dock-windows.zip
+            ptz-tracking-dock-windows-installer.exe
 
   build-macos:
     runs-on: macos-latest
@@ -86,12 +101,19 @@ jobs:
             exit 1
           fi
           /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$bundle" ptz-tracking-dock-macos.zip
+          version="0.1.0"
+          if [[ "${GITHUB_REF_TYPE:-}" == "tag" ]]; then
+            version="${GITHUB_REF_NAME#v}"
+          fi
+          bash packaging/macos/build-pkg.sh "$bundle" ptz-tracking-dock-macos-installer.pkg "$version"
 
       - name: Upload CI artifact
         uses: actions/upload-artifact@v4
         with:
           name: ptz-tracking-dock-macos
-          path: ptz-tracking-dock-macos.zip
+          path: |
+            ptz-tracking-dock-macos.zip
+            ptz-tracking-dock-macos-installer.pkg
 
   publish-release:
     if: startsWith(github.ref, 'refs/tags/')
@@ -115,6 +137,8 @@ jobs:
             gh release create "$tag" --repo "${GITHUB_REPOSITORY}" --generate-notes
           gh release upload "$tag" \
             dist/ptz-tracking-dock-windows/ptz-tracking-dock-windows.zip \
+            dist/ptz-tracking-dock-windows/ptz-tracking-dock-windows-installer.exe \
             dist/ptz-tracking-dock-macos/ptz-tracking-dock-macos.zip \
+            dist/ptz-tracking-dock-macos/ptz-tracking-dock-macos-installer.pkg \
             --repo "${GITHUB_REPOSITORY}" \
             --clobber

@@ -53,10 +53,21 @@ Open Releases:
 
 Assets:
 
+- `ptz-tracking-dock-macos-installer.pkg`
+- `ptz-tracking-dock-windows-installer.exe`
 - `ptz-tracking-dock-macos.zip`
 - `ptz-tracking-dock-windows.zip`
 
 ### macOS install
+
+Installer:
+
+1. Download `ptz-tracking-dock-macos-installer.pkg`.
+2. Open the package and follow the installer.
+3. The package installs to `~/Library/Application Support/obs-studio/plugins/` for the logged-in user.
+4. Restart OBS.
+
+Manual zip install:
 
 1. Download `ptz-tracking-dock-macos.zip`.
 2. Extract `ptz-tracking-dock.plugin`.
@@ -66,6 +77,14 @@ Assets:
 4. Restart OBS.
 
 ### Windows install
+
+Installer:
+
+1. Download `ptz-tracking-dock-windows-installer.exe`.
+2. Open the installer and choose your OBS Studio folder if it is not detected automatically.
+3. Restart OBS.
+
+Manual zip install:
 
 1. Download `ptz-tracking-dock-windows.zip`.
 2. Extract contents.

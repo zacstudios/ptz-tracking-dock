@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC OFF)
+set(CMAKE_AUTOUIC OFF)
 
 option(PTZ_TRACKING_DOCK_DYNAMIC_LOOKUP "Build without OBS stubs and resolve OBS symbols at runtime (macOS/local dev fallback)" OFF)
 
@@ -113,6 +113,8 @@ if(APPLE)
   set_target_properties(ptz-tracking-dock PROPERTIES
     BUNDLE TRUE
     BUNDLE_EXTENSION "plugin"
+    BUILD_WITH_INSTALL_RPATH TRUE
+    INSTALL_RPATH "@executable_path/../Frameworks"
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
     MACOSX_BUNDLE_GUI_IDENTIFIER "${PTZ_DOCK_BUNDLE_ID}"
@@ -127,7 +129,9 @@ if(APPLE)
     COMMAND /bin/sh -c "\
       bin=\"$<TARGET_FILE:ptz-tracking-dock>\"; \
       /usr/bin/install_name_tool -delete_rpath /opt/homebrew/opt/qt/lib \"$bin\" 2>/dev/null || true; \
+      /usr/bin/install_name_tool -delete_rpath /opt/homebrew/lib \"$bin\" 2>/dev/null || true; \
       /usr/bin/install_name_tool -delete_rpath /usr/local/opt/qt/lib \"$bin\" 2>/dev/null || true; \
+      /usr/bin/install_name_tool -delete_rpath /usr/local/lib \"$bin\" 2>/dev/null || true; \
       /usr/bin/install_name_tool -add_rpath @executable_path/../Frameworks \"$bin\" 2>/dev/null || true; \
       for prefix in /opt/homebrew/opt/qtbase/lib /usr/local/opt/qtbase/lib; do \
         /usr/bin/install_name_tool -change $prefix/QtCore.framework/Versions/A/QtCore @rpath/QtCore.framework/Versions/A/QtCore \"$bin\" 2>/dev/null || true; \
