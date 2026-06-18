@@ -45,18 +45,30 @@ begin
   Result := ExpandConstant('{autopf}\obs-studio');
 end;
 
-function InitializeSetup(): Boolean;
+function IsObsDir(Dir: String): Boolean;
 begin
-  if FileExists(ExpandConstant('{app}\bin\64bit\obs64.exe')) or
-     FileExists(ExpandConstant('{app}\bin\64bit\obs.exe')) then
-  begin
-    Result := True;
-    Exit;
-  end;
+  Result :=
+    FileExists(AddBackslash(Dir) + 'bin\64bit\obs64.exe') or
+    FileExists(AddBackslash(Dir) + 'bin\64bit\obs.exe');
+end;
 
-  Result := MsgBox(
-    'OBS Studio was not found in the selected folder. Continue only if you plan to choose your OBS Studio install folder on the next screen.',
+function NextButtonClick(CurPageID: Integer): Boolean;
+begin
+  Result := True;
+
+  if CurPageID <> wpSelectDir then
+    Exit;
+
+  if IsObsDir(WizardDirValue) then
+    Exit;
+
+  if MsgBox(
+    'OBS Studio was not found in the selected folder. Continue only if this is your OBS Studio install folder.',
     mbConfirmation,
     MB_YESNO
-  ) = IDYES;
+  ) = IDNO then
+  begin
+    Result := False;
+    Exit;
+  end;
 end;
