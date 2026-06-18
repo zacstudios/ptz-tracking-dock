@@ -2,16 +2,12 @@
 
 #include <obs-module.h>
 
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-
-#include <cerrno>
-#include <string>
-#include <sys/stat.h>
-#include <sys/types.h>
 
 namespace {
 QString configPath()
@@ -46,33 +42,10 @@ QString sanitizeHost(QString host)
 
 bool ensureDirectoryPath(const QString &directory)
 {
-	const QByteArray utf8 = directory.toUtf8();
-	if (utf8.isEmpty())
+	if (directory.trimmed().isEmpty())
 		return true;
 
-	std::string path(utf8.constData(), static_cast<size_t>(utf8.size()));
-	if (path.empty())
-		return true;
-
-	if (mkdir(path.c_str(), 0755) == 0 || errno == EEXIST)
-		return true;
-
-	size_t start = (path[0] == '/') ? 1 : 0;
-	for (size_t i = start; i < path.size(); ++i) {
-		if (path[i] != '/')
-			continue;
-
-		std::string part = path.substr(0, i);
-		if (part.empty())
-			continue;
-		if (mkdir(part.c_str(), 0755) != 0 && errno != EEXIST)
-			return false;
-	}
-
-	if (mkdir(path.c_str(), 0755) != 0 && errno != EEXIST)
-		return false;
-
-	return true;
+	return QDir().mkpath(directory);
 }
 } // namespace
 
